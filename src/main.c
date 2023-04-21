@@ -31,6 +31,8 @@
 
 #include "sleep.h"
 
+#include "../inc/i2c.h"
+
 #define STACK_SIZE_FOR_TASK    (configMINIMAL_STACK_SIZE + 10)
 #define TASK_PRIORITY          (tskIDLE_PRIORITY + 1)
 
@@ -80,6 +82,9 @@ int main(void)
   SLEEP_SleepBlockBegin((SLEEP_EnergyMode_t)(configSLEEP_MODE + 1));
 #endif
 
+  BSP_I2C_Init(0xD7);
+  I2C_Test();
+
   /* Parameters value for taks*/
   static TaskParams_t parametersToTask1 = { pdMS_TO_TICKS(1000), 0 };
   static TaskParams_t parametersToTask2 = { pdMS_TO_TICKS(500), 1 };
@@ -90,6 +95,8 @@ int main(void)
 
   /*Start FreeRTOS Scheduler*/
   vTaskStartScheduler();
+
+
 
   return 0;
 }
