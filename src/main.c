@@ -84,18 +84,24 @@ static void calculateValues(void *pParameters)
 {
   Axis     * pData = (Axis*) pParameters;
   BSP_I2C_Init(pData->address);
-  uint8_t data[2];
-  //uint8_t res[6];
-  //PAG 56 DATASHEET
+  uint16_t data[6];
+  uint16_t dataConvert[3];
 
   for(;;)
   {
 	  I2C_ReadRegister(pData->address_X_1, &data[0]);
 	  I2C_ReadRegister(pData->address_X_2, &data[1]);
+      I2C_ReadRegister(pData->address_Y_1, &data[2]);
+	  I2C_ReadRegister(pData->address_Y_2, &data[3]);
+      I2C_ReadRegister(pData->address_Z_1, &data[4]);
+	  I2C_ReadRegister(pData->address_Z_2, &data[5]);
 
+      for (int i = 0; i < 3; i++)
+      {
+            dataConvert[i] = (data[i*2] << 16) + data[i*2+1];
+      }
   }
 
-  //bool res = I2C_Test();
   printf("Valor X1: %d\n",(int)res);
 
 }
@@ -127,11 +133,17 @@ int main(void)
   static TaskParams_t parametersToTask1 = { pdMS_TO_TICKS(1000), 0, NULL };
   static TaskParams_t parametersToTask2 = { pdMS_TO_TICKS(500), 1, NULL };
   static TaskParams_t parametersToTask3 = { NULL, NULL, 0xD6 };
+  static Axis parametersToValues = {0xD6, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D};
 
   /*Create two task for blinking leds*/
   xTaskCreate(LedBlink, (const char *) "LedBlink1", STACK_SIZE_FOR_TASK, &parametersToTask1, TASK_PRIORITY, NULL);
   xTaskCreate(LedBlink, (const char *) "LedBlink2", STACK_SIZE_FOR_TASK, &parametersToTask2, TASK_PRIORITY, NULL);
+
+  // Test WhoAmI
   xTaskCreate(testWhoAmI, (const char *) "testWhoAmI", STACK_SIZE_FOR_TASK, &parametersToTask3, TASK_PRIORITY, NULL);
+
+  // Calcular valors X Y Z
+  xTaskCreate(calculateValues, (const char *) "calculateValues", STACK_SIZE_FOR_TASK, &parametersToValues, TASK_PRIORITY, NULL);
 
   /*Start FreeRTOS Scheduler*/
   vTaskStartScheduler();
