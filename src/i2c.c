@@ -4,10 +4,18 @@ static uint8_t device_addr;
 
 SemaphoreHandle_t Semaphore;
 
+int _write(int file, const char *ptr, int len) {
+    int x;
+    for (x = 0; x < len; x++) {
+       ITM_SendChar (*ptr++);
+    }
+    return (len);
+}
 
 void BSP_I2C_Init(uint8_t addr) {
 
 	Semaphore = xSemaphoreCreateBinary();
+	xSemaphoreGive(Semaphore);
 	I2C_Init_TypeDef i2cInit = I2C_INIT_DEFAULT;
 	CMU_ClockEnable(cmuClock_I2C1, true);
 	GPIO_PinModeSet(gpioPortC, 4, gpioModeWiredAnd, 1);
@@ -103,14 +111,13 @@ bool I2C_ReadRegister(uint8_t reg, uint8_t *val) {
 bool I2C_Test() {
 	uint8_t data;
 
-	I2C_ReadRegister(0xD0, &data);
+	I2C_ReadRegister(0x0F, &data);
 
-	printf("I2C: %02X\n", data);
+	printf("I2C: 0x%02X\n", data);
 
-	if (data == 0x60) {
+	if (data == 0x68) {
 		return true;
 	} else {
 		return false;
 	}
-
 }

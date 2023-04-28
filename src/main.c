@@ -42,7 +42,18 @@ typedef struct {
   portTickType delay;
   /* Number of led */
   int          ledNo;
+  uint8_t address;
 } TaskParams_t;
+
+typedef struct {
+  uint8_t address;
+  uint8_t address_X_1;
+  uint8_t address_X_2;
+  uint8_t address_Y_1;
+  uint8_t address_Y_2;
+  uint8_t address_Z_1;
+  uint8_t address_Z_2;
+} Axis;
 
 /***************************************************************************//**
  * @brief Simple task which is blinking led
@@ -57,6 +68,36 @@ static void LedBlink(void *pParameters)
     BSP_LedToggle(pData->ledNo);
     vTaskDelay(delay);
   }
+}
+
+static void testWhoAmI(void *pParameters)
+{
+  TaskParams_t     * pData = (TaskParams_t*) pParameters;
+  BSP_I2C_Init(pData->address);
+
+  bool res = I2C_Test();
+  printf("Valor correcte (0/1): %d\n",(int)res);
+
+}
+
+static void calculateValues(void *pParameters)
+{
+  Axis     * pData = (Axis*) pParameters;
+  BSP_I2C_Init(pData->address);
+  uint8_t data[2];
+  //uint8_t res[6];
+  //PAG 56 DATASHEET
+
+  for(;;)
+  {
+	  I2C_ReadRegister(pData->address_X_1, &data[0]);
+	  I2C_ReadRegister(pData->address_X_2, &data[1]);
+
+  }
+
+  //bool res = I2C_Test();
+  printf("Valor X1: %d\n",(int)res);
+
 }
 
 /***************************************************************************//**
@@ -82,16 +123,15 @@ int main(void)
   SLEEP_SleepBlockBegin((SLEEP_EnergyMode_t)(configSLEEP_MODE + 1));
 #endif
 
-  BSP_I2C_Init(0xD7);
-  I2C_Test();
-
   /* Parameters value for taks*/
-  static TaskParams_t parametersToTask1 = { pdMS_TO_TICKS(1000), 0 };
-  static TaskParams_t parametersToTask2 = { pdMS_TO_TICKS(500), 1 };
+  static TaskParams_t parametersToTask1 = { pdMS_TO_TICKS(1000), 0, NULL };
+  static TaskParams_t parametersToTask2 = { pdMS_TO_TICKS(500), 1, NULL };
+  static TaskParams_t parametersToTask3 = { NULL, NULL, 0xD6 };
 
   /*Create two task for blinking leds*/
   xTaskCreate(LedBlink, (const char *) "LedBlink1", STACK_SIZE_FOR_TASK, &parametersToTask1, TASK_PRIORITY, NULL);
   xTaskCreate(LedBlink, (const char *) "LedBlink2", STACK_SIZE_FOR_TASK, &parametersToTask2, TASK_PRIORITY, NULL);
+  xTaskCreate(testWhoAmI, (const char *) "testWhoAmI", STACK_SIZE_FOR_TASK, &parametersToTask3, TASK_PRIORITY, NULL);
 
   /*Start FreeRTOS Scheduler*/
   vTaskStartScheduler();
