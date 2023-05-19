@@ -42,6 +42,8 @@ QueueHandle_t CuaLecturaGs;
 QueueHandle_t CuaPrintGraus;
 QueueHandle_t CuaPrintGs;
 
+QueueHandle_t CuaMostraISR;
+
 SemaphoreHandle_t SemaphoreISR;
 
 typedef struct {
@@ -79,13 +81,13 @@ typedef struct{
 
 void GPIO_ODD_IRQHandler(void) {
  uint32_t aux;
-
  aux = GPIO_IntGet();
 
  /* clear flags */
  GPIO_IntClear(aux);
 
- xSemaphoreGiveFromISR(SemaphoreISR, NULL);
+xSemaphoreGiveFromISR(SemaphoreISR, NULL);
+
 }
 
 uint16_t C2 (uint16_t data)
@@ -180,6 +182,7 @@ static void displayMov()
 {
 	dataGraus data;
 	dataInG dataG;
+	int mostra;
 
 	for (;;)
 	{
@@ -190,7 +193,8 @@ static void displayMov()
 		printf("Inclinacio Y: %f graus\n\n", data.degY);
 		printf("Valor X: %c%d.%d G\n", dataG.X_sign, dataG.X_ent, dataG.X_dec);
 		printf("Valor Y: %c%d.%d G\n", dataG.Y_sign, dataG.Y_ent, dataG.Y_dec);
-		printf("Valor Z: %c%d.%d G\n\n", dataG.Z_sign, dataG.Z_ent, dataG.Z_dec);
+		printf("Valor Z: %c%d.%d G\n\n\n\n\n", dataG.Z_sign, dataG.Z_ent, dataG.Z_dec);
+
 	}
 }
 
@@ -259,10 +263,10 @@ int main(void)
   SLEEP_SleepBlockBegin((SLEEP_EnergyMode_t)(configSLEEP_MODE + 1));
 #endif
 
-  CuaLecturaGs =  xQueueCreate( 10, sizeof(dataConverted));
-  CuaLecturaGraus =  xQueueCreate( 10, sizeof(dataConverted));
-  CuaPrintGs = xQueueCreate( 10, sizeof(dataInG));
-  CuaPrintGraus = xQueueCreate( 10, sizeof(dataGraus));
+  CuaLecturaGs =  xQueueCreate( 1, sizeof(dataConverted));
+  CuaLecturaGraus =  xQueueCreate( 1, sizeof(dataConverted));
+  CuaPrintGs = xQueueCreate( 1, sizeof(dataInG));
+  CuaPrintGraus = xQueueCreate( 1, sizeof(dataGraus));
 
   /* Parameters value for tasks*/
   //static Axis parametersWhoAmI = {0xD6, NULL, NULL, NULL, NULL, NULL, NULL };

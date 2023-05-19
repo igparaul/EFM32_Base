@@ -136,6 +136,7 @@ errno               0x4               c:/siliconlabs/simplicitystudio/v4/develop
 xQueueRegistry      0x50              ./FreeRTOS/efm32gg/queue.o
 CuaLecturaGraus     0x4               ./src/main.o
 CuaLecturaGs        0x4               ./src/main.o
+CuaMostraISR        0x4               ./src/main.o
 Semaphore           0x4               ./src/i2c.o
 CuaPrintGs          0x4               ./src/main.o
 CuaPrintGraus       0x4               ./src/main.o
@@ -4915,7 +4916,7 @@ LOAD c:/siliconlabs/simplicitystudio/v4/developer/toolchains/gnu_arm/7.2_2017q4/
                 0x20000008                SystemCoreClock
  .data.uxCriticalNesting
                 0x2000000c        0x4 ./FreeRTOS/efm32gg/port_gcc.o
- .data.parametersToValues.7986
+ .data.parametersToValues.7988
                 0x20000010        0x7 ./src/main.o
  *fill*         0x20000017        0x1 
  .data._impure_ptr
@@ -4953,7 +4954,7 @@ LOAD c:/siliconlabs/simplicitystudio/v4/developer/toolchains/gnu_arm/7.2_2017q4/
 .igot.plt       0x200001f0        0x0 load address 0x00009a2c
  .igot.plt      0x200001f0        0x0 c:/siliconlabs/simplicitystudio/v4/developer/toolchains/gnu_arm/7.2_2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/thumb/v7-m/crtbegin.o
 
-.bss            0x200001f0     0x251c load address 0x00009a2c
+.bss            0x200001f0     0x2520 load address 0x00009a2c
                 0x200001f0                . = ALIGN (0x4)
                 0x200001f0                __bss_start__ = .
  *(.bss*)
@@ -5055,16 +5056,17 @@ LOAD c:/siliconlabs/simplicitystudio/v4/developer/toolchains/gnu_arm/7.2_2017q4/
                 0x200026a0                xQueueRegistry
  COMMON         0x200026f0        0x4 ./src/i2c.o
                 0x200026f0                Semaphore
- COMMON         0x200026f4       0x14 ./src/main.o
+ COMMON         0x200026f4       0x18 ./src/main.o
                 0x200026f4                CuaLecturaGraus
                 0x200026f8                CuaLecturaGs
-                0x200026fc                CuaPrintGs
-                0x20002700                CuaPrintGraus
-                0x20002704                SemaphoreISR
- COMMON         0x20002708        0x4 c:/siliconlabs/simplicitystudio/v4/developer/toolchains/gnu_arm/7.2_2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-reent.o)
-                0x20002708                errno
-                0x2000270c                . = ALIGN (0x4)
-                0x2000270c                __bss_end__ = .
+                0x200026fc                CuaMostraISR
+                0x20002700                CuaPrintGs
+                0x20002704                CuaPrintGraus
+                0x20002708                SemaphoreISR
+ COMMON         0x2000270c        0x4 c:/siliconlabs/simplicitystudio/v4/developer/toolchains/gnu_arm/7.2_2017q4/bin/../lib/gcc/arm-none-eabi/7.2.1/../../../../arm-none-eabi/lib/thumb/v7-m\libc_nano.a(lib_a-reent.o)
+                0x2000270c                errno
+                0x20002710                . = ALIGN (0x4)
+                0x20002710                __bss_end__ = .
 
 .heap           0x20002710      0xc00
                 0x20002710                __HeapBase = .
@@ -5281,7 +5283,7 @@ OUTPUT(EFM32_Base.axf elf32-littlearm)
  .comment       0x0000007e       0x7f ./src/low_power_tick_management.o
  .comment       0x0000007e       0x7f ./src/main.o
 
-.debug_info     0x00000000    0x11cc2
+.debug_info     0x00000000    0x11cdf
  .debug_info    0x00000000      0x845 ./BSP/bsp_stk_leds.o
  .debug_info    0x00000845      0xcfd ./BSP/bsp_trace.o
  .debug_info    0x00001542       0x26 ./CMSIS/EFM32GG/startup_gcc_efm32gg.o
@@ -5304,9 +5306,9 @@ OUTPUT(EFM32_Base.axf elf32-littlearm)
  .debug_info    0x0000e1c4      0x2d6 ./emlib/em_system.o
  .debug_info    0x0000e49a     0x1320 ./src/i2c.o
  .debug_info    0x0000f7ba      0xbd4 ./src/low_power_tick_management.o
- .debug_info    0x0001038e     0x1934 ./src/main.o
+ .debug_info    0x0001038e     0x1951 ./src/main.o
 
-.debug_abbrev   0x00000000     0x31ed
+.debug_abbrev   0x00000000     0x31fa
  .debug_abbrev  0x00000000      0x1eb ./BSP/bsp_stk_leds.o
  .debug_abbrev  0x000001eb      0x1c7 ./BSP/bsp_trace.o
  .debug_abbrev  0x000003b2       0x14 ./CMSIS/EFM32GG/startup_gcc_efm32gg.o
@@ -5329,7 +5331,7 @@ OUTPUT(EFM32_Base.axf elf32-littlearm)
  .debug_abbrev  0x000027ff      0x153 ./emlib/em_system.o
  .debug_abbrev  0x00002952      0x2b5 ./src/i2c.o
  .debug_abbrev  0x00002c07      0x2b3 ./src/low_power_tick_management.o
- .debug_abbrev  0x00002eba      0x333 ./src/main.o
+ .debug_abbrev  0x00002eba      0x340 ./src/main.o
 
 .debug_loc      0x00000000     0x6324
  .debug_loc     0x00000000      0x3cc ./BSP/bsp_stk_leds.o
@@ -5579,7 +5581,7 @@ OUTPUT(EFM32_Base.axf elf32-littlearm)
  .debug_line    0x0000bea5      0xb7c ./src/low_power_tick_management.o
  .debug_line    0x0000ca21      0xeac ./src/main.o
 
-.debug_str      0x00000000    0xe3a87
+.debug_str      0x00000000    0xe3a9b
  .debug_str     0x00000000    0xd4a05 ./BSP/bsp_stk_leds.o
                               0xd5044 (size before relaxing)
  .debug_str     0x000d4a05      0x398 ./BSP/bsp_trace.o
@@ -5624,8 +5626,8 @@ OUTPUT(EFM32_Base.axf elf32-littlearm)
                               0xdb61f (size before relaxing)
  .debug_str     0x000e2ce6       0xd7 ./src/low_power_tick_management.o
                               0xd8afe (size before relaxing)
- .debug_str     0x000e2dbd      0xcca ./src/main.o
-                              0xddd49 (size before relaxing)
+ .debug_str     0x000e2dbd      0xcde ./src/main.o
+                              0xddd5d (size before relaxing)
 
 .debug_frame    0x00000000     0x3fc4
  .debug_frame   0x00000000      0x1c4 ./BSP/bsp_stk_leds.o
