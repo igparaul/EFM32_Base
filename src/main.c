@@ -42,6 +42,8 @@ QueueHandle_t CuaLecturaGs;
 QueueHandle_t CuaPrintGraus;
 QueueHandle_t CuaPrintGs;
 
+SemaphoreHandle_t SemaphoreISR;
+
 typedef struct {
   uint8_t address;
   uint8_t address_X_1;
@@ -74,6 +76,17 @@ typedef struct{
 	float degX;
 	float degY;
 } dataGraus;
+
+void GPIO_ODD_IRQHandler(void) {
+ uint32_t aux;
+
+ aux = GPIO_IntGet();
+
+ /* clear flags */
+ GPIO_IntClear(aux);
+
+ xSemaphoreGiveFromISR(SemaphoreISR, NULL);
+}
 
 uint16_t C2 (uint16_t data)
 {
@@ -167,15 +180,17 @@ static void displayMov()
 {
 	dataGraus data;
 	dataInG dataG;
+
 	for (;;)
 	{
+		xSemaphoreTake(SemaphoreISR, portMAX_DELAY);
 		xQueueReceive(CuaPrintGraus, &data, 0);
 		xQueueReceive(CuaPrintGs, &dataG, 0);
 		printf("Inclinacio X: %f graus\n", data.degX);
 		printf("Inclinacio Y: %f graus\n\n", data.degY);
 		printf("Valor X: %c%d.%d G\n", dataG.X_sign, dataG.X_ent, dataG.X_dec);
-	    printf("Valor Y: %c%d.%d G\n", dataG.Y_sign, dataG.Y_ent, dataG.Y_dec);
-	    printf("Valor Z: %c%d.%d G\n\n", dataG.Z_sign, dataG.Z_ent, dataG.Z_dec);
+		printf("Valor Y: %c%d.%d G\n", dataG.Y_sign, dataG.Y_ent, dataG.Y_dec);
+		printf("Valor Z: %c%d.%d G\n\n", dataG.Z_sign, dataG.Z_ent, dataG.Z_dec);
 	}
 }
 
@@ -226,6 +241,17 @@ int main(void)
   BSP_LedSet(0);
   BSP_LedSet(1);
 
+  GPIO_PinModeSet(gpioPortB, 9, gpioModeInput, 0); /* Boto 0 */
+
+  SemaphoreISR = xSemaphoreCreateBinary();
+
+  /* Set Interrupt configuration for button 0 */
+  GPIO_IntConfig(gpioPortB, 9, false, true, true);
+
+  /* Enable interrupts */
+  NVIC_SetPriority(GPIO_ODD_IRQn, 255);
+  NVIC_EnableIRQ(GPIO_ODD_IRQn);
+
   /* Initialize SLEEP driver, no calbacks are used */
   SLEEP_Init(NULL, NULL);
 #if (configSLEEP_MODE < 3)
@@ -239,11 +265,11 @@ int main(void)
   CuaPrintGraus = xQueueCreate( 10, sizeof(dataGraus));
 
   /* Parameters value for tasks*/
-  static Axis parametersWhoAmI = {0xD6, NULL, NULL, NULL, NULL, NULL, NULL };
+  //static Axis parametersWhoAmI = {0xD6, NULL, NULL, NULL, NULL, NULL, NULL };
   static Axis parametersToValues = {0xD6, 0x28, 0x29, 0x2A, 0x2B, 0x2C, 0x2D};
 
   // Test WhoAmI
-  xTaskCreate(testWhoAmI, (const char *) "testWhoAmI", STACK_SIZE_FOR_TASK, &parametersWhoAmI, TASK_PRIORITY, NULL);
+  //xTaskCreate(testWhoAmI, (const char *) "testWhoAmI", STACK_SIZE_FOR_TASK, &parametersWhoAmI, TASK_PRIORITY, NULL);
 
   // Llegir valors X Y Z
   xTaskCreate(readValues, (const char *) "readValues", STACK_SIZE_FOR_TASK, &parametersToValues, TASK_PRIORITY, NULL);
